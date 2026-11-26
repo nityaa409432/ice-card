@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ICE Card Maker</title>
+  <meta name="description" content="Make an In Case of Emergency card for you and your family: blood group, allergies, medication and emergency contacts on a printable wallet card and a lock-screen wallpaper, with AI prescription scanning and translation.">
+
+  <!-- Fonts: Archivo for headings and the card, Inter for body text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== Page header ===== -->
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">ICE</span>
+        <div>
+          <h1>ICE Card Maker</h1>
+          <p class="tagline">Medical details for you and your family on a wallet card and a lock screen, where a first responder can find them.</p>
+        </div>
+      </div>
+      <p class="privacy">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z"/></svg>
+        Saved only in this browser.
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+
+    <!-- ===== Left column: people + form ===== -->
+    <section class="panel form-panel" aria-labelledby="form-title">
+
+      <!-- One tab per family member -->
+      <div class="profiles" role="tablist" aria-label="People" id="profile-tabs"></div>
+
+      <div class="panel-head">
+        <h2 id="form-title">Details</h2>
+        <span id="save-status" class="save-status" role="status" aria-live="polite"></span>
+      </div>
+
+      <div id="example-banner" class="example-banner" hidden>
+        <p>These are example details. Edit any field to make the card yours, or start with a blank form.</p>
+        <button type="button" class="btn btn-small" id="start-blank">Start blank</button>
+      </div>
+
+      <form id="info-form" novalidate>
+        <fieldset>
+          <legend>About</legend>
+          <div class="field">
+            <label for="f-name">Full name</label>
+            <input id="f-name" type="text" autocomplete="name" maxlength="60">
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="f-dob">Date of birth <span class="opt">optional</span></label>
+              <input id="f-dob" type="date">
+            </div>
+            <div class="field">
+              <label for="f-blood">Blood group</label>
+              <select id="f-blood">
+                <option value="">Select</option>
+                <option>A+</option><option>A−</option>
+                <option>B+</option><option>B−</option>
+                <option>AB+</option><option>AB−</option>
+                <option>O+</option><option>O−</option>
+                <option value="Unknown">Not sure</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="f-country">Emergency number for</label>
+              <select id="f-country"></select>
+            </div>
+            <label class="check" for="f-donor">
+              <input id="f-donor" type="checkbox">
+              <span>Registered organ donor</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Medical</legend>
+
+          <!-- AI: read a prescription photo and suggest entries -->
+          <div class="ai-box">
+            <div class="ai-box-text">
+              <p class="ai-title"><span class="ai-pill">AI</span> Scan a prescription</p>
+              <p class="hint">Take a photo of a prescription or medical report. AI suggests medications, conditions and allergies for you to check.</p>
+            </div>
+            <label class="btn btn-ai" id="scan-label" for="scan-input">Choose photo</label>
+            <input id="scan-input" class="visually-hidden" type="file" accept="image/*" capture="environment">
+          </div>
+          <div id="scan-result" class="scan-result" hidden></div>
+
+          <p class="hint">Separate items with commas. Leave a field empty to hide it from the card.</p>
+          <div class="field">
+            <label for="f-allergies">Allergies</label>
+            <textarea id="f-allergies" rows="2" maxlength="200" placeholder="e.g. Penicillin, peanuts, latex"></textarea>
+          </div>
+          <div class="field">
+            <label for="f-conditions">Medical conditions</label>
+            <textarea id="f-conditions" rows="2" maxlength="200" placeholder="e.g. Asthma, type 1 diabetes, epilepsy"></textarea>
+          </div>
+          <div class="field">
+            <label for="f-medications">Medications</label>
+            <textarea id="f-medications" rows="2" maxlength="200" placeholder="e.g. Insulin, salbutamol inhaler"></textarea>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>For responders</legend>
+          <div class="field">
+            <div class="label-row">
+              <label for="f-notes">Notes for responders <span class="opt">one per line</span></label>
+              <button type="button" class="btn btn-ai btn-small" id="notes-ai">Write with AI</button>
+            </div>
+            <textarea id="f-notes" rows="3" maxlength="320" placeholder="e.g. Inhaler is in the front pocket of my bag"></textarea>
+            <p class="hint" id="notes-status" aria-live="polite"></p>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="f-doctorName">Doctor <span class="opt">optional</span></label>
+              <input id="f-doctorName" type="text" maxlength="40" placeholder="e.g. Dr. Meera Iyer">
+            </div>
+            <div class="field">
+              <label for="f-doctorPhone">Doctor's phone</label>
+              <input id="f-doctorPhone" type="tel" maxlength="24">
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Emergency contacts</legend>
+          <div id="contacts" class="contacts"></div>
+          <button type="button" class="btn btn-ghost" id="add-contact">+ Add contact</button>
+        </fieldset>
+      </form>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="load-example">Load example</button>
+        <button type="button" class="btn btn-ghost btn-danger" id="delete-profile">Delete this person</button>
+      </div>
+
+      <!-- Backup and AI settings live in collapsible sections -->
+      <details class="more">
+        <summary>Backup and restore</summary>
+        <div class="more-body">
+          <p class="hint">Save everyone's details as a file, so you can move them to another device.</p>
+          <div class="actions">
+            <button type="button" class="btn btn-ghost" id="export-btn">Download backup</button>
+            <label class="btn btn-ghost" for="import-input">Restore from file</label>
+            <input id="import-input" class="visually-hidden" type="file" accept="application/json,.json">
+          </div>
+          <p class="hint" id="backup-status" aria-live="polite"></p>
+        </div>
+      </details>
+
+      <details class="more" id="ai-settings">
+        <summary>AI settings <span class="ai-mode" id="ai-mode"></span></summary>
+        <div class="more-body">
+          <p class="hint" id="ai-explain"></p>
+          <div id="key-box" class="key-box">
+            <div class="field">
+              <label for="api-key">Anthropic API key</label>
+              <input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
+            </div>
+            <div class="actions">
+              <button type="button" class="btn btn-ghost" id="save-key">Save key</button>
+              <button type="button" class="link-btn" id="remove-key">Remove key</button>
+            </div>
+            <p class="hint">The key is stored only in this browser and sent only to api.anthropic.com. Each AI request is billed to that key.</p>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ===== Right column: live previews and exports ===== -->
+    <section class="preview-panel" aria-labelledby="preview-title">
+
+      <!-- Who to call, shown for the selected country -->
+      <div class="sos" id="sos">
+        <div>
+          <p class="sos-label">In an emergency, call</p>
+          <p class="sos-number" id="sos-number"></p>
+        </div>
+        <a class="btn btn-ghost" id="hospitals-link" href="https://www.google.com/maps/search/hospital+near+me" target="_blank" rel="noopener">Find hospitals near me</a>
+      </div>
+
+      <div class="preview-head">
+        <h2 id="preview-title" class="section-label">Wallet card <span>85.6 × 54 mm</span></h2>
+        <div class="segmented" role="group" aria-label="Card side">
+          <button type="button" class="seg is-on" data-side="front" aria-pressed="true">Front</button>
+          <button type="button" class="seg" data-side="back" aria-pressed="false">Back</button>
+        </div>
+      </div>
+
+      <!-- The card is sized with container units so the same markup prints at real size -->
+      <div class="card-frame" id="card-frame" data-side="front">
+        <!-- FRONT -->
+        <article class="ice-card card-front" aria-label="Card front">
+          <header class="card-top">
+            <span class="card-ice">ICE</span>
+            <span class="card-heading" data-l="heading"></span>
+            <span class="card-call" id="c-call"></span>
+          </header>
+          <div class="card-body">
+            <div class="card-main">
+              <p class="card-name" id="c-name"></p>
+              <p class="card-dob" id="c-dob"></p>
+              <dl class="card-list">
+                <div id="row-allergies"><dt data-l="allergies"></dt><dd id="c-allergies"></dd></div>
+                <div id="row-conditions"><dt data-l="conditions"></dt><dd id="c-conditions"></dd></div>
+                <div id="row-medications"><dt data-l="medications"></dt><dd id="c-medications"></dd></div>
+              </dl>
+            </div>
+            <div class="card-side">
+              <div class="blood-badge">
+                <span data-l="blood"></span>
+                <strong id="c-blood"></strong>
+              </div>
+              <canvas id="c-qr" class="card-qr" width="360" height="360" aria-label="QR code with these emergency details"></canvas>
+            </div>
+          </div>
+          <footer class="card-contacts" id="c-contacts"></footer>
+        </article>
+
+        <!-- BACK -->
+        <article class="ice-card card-back" aria-label="Card back">
+          <header class="card-top">
+            <span class="card-ice">ICE</span>
+            <span class="card-heading" data-l="notes"></span>
+          </header>
+          <div class="back-body">
+            <ul class="back-notes" id="b-notes"></ul>
+            <div class="back-side">
+              <div>
+                <p class="back-label" data-l="contacts"></p>
+                <div id="b-contacts" class="back-contacts"></div>
+              </div>
+              <div id="b-doctor-row">
+                <p class="back-label" data-l="doctor"></p>
+                <p class="back-text" id="b-doctor"></p>
+              </div>
+              <p class="donor" id="b-donor" data-l="donor"></p>
+            </div>
+          </div>
+        </article>
+        <p class="print-only cut-note">Cut out both sides and glue them back to back. The QR code holds all of these details as plain text.</p>
+      </div>
+
+      <!-- AI translation of the card -->
+      <div class="translate-row">
+        <div class="field">
+          <label for="card-lang">Card language <span class="ai-pill">AI</span></label>
+          <select id="card-lang"></select>
+        </div>
+        <button type="button" class="btn btn-ai" id="translate-btn">Translate</button>
+      </div>
+      <p class="hint" id="translate-status" aria-live="polite"></p>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="print-btn">Print card</button>
+      </div>
+      <p class="note" id="print-note" hidden></p>
+
+      <h2 class="section-label">Lock screen <span>wallpaper image</span></h2>
+      <div class="wallpaper-row">
+        <div class="phone">
+          <canvas id="wp-canvas" aria-label="Lock-screen wallpaper preview"></canvas>
+        </div>
+        <div class="wallpaper-controls">
+          <div class="field">
+            <label for="wp-size">Phone size</label>
+            <select id="wp-size">
+              <option value="iphone">iPhone (1170 × 2532)</option>
+              <option value="android">Android (1080 × 2400)</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-primary" id="download-btn">Download wallpaper</button>
+          <p class="hint">The top of the image is left clear so your clock does not cover the details.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap site-footer">
+    <p>This card helps responders but does not replace a medical ID bracelet or advice from your doctor. AI suggestions can be wrong, so check everything before you print. Keep it up to date.</p>
+  </footer>
+
+  <!-- Template for one emergency contact row (cloned by app.js) -->
+  <template id="contact-template">
+    <div class="contact">
+      <div class="contact-head">
+        <span class="contact-label"></span>
+        <button type="button" class="link-btn remove-contact">Remove</button>
+      </div>
+      <div class="contact-grid">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" data-field="name" maxlength="40" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Relation</label>
+          <input type="text" data-field="relation" maxlength="24" placeholder="e.g. Mother">
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input type="tel" data-field="phone" maxlength="24" autocomplete="off" placeholder="+91 98765 43210">
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Dialog that shows the finished wallpaper so it can be saved -->
+  <div class="modal" id="save-modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="save-title">
+      <h2 id="save-title">Your wallpaper is ready</h2>
+      <p id="save-text">If the download did not start, long-press the image (phone) or right-click it (computer) and save it.</p>
+      <img id="save-img" alt="Lock-screen wallpaper with emergency details">
+      <ul class="steps">
+        <li><strong>iPhone:</strong> Photos, open the image, Share, Use as Wallpaper.</li>
+        <li><strong>Android:</strong> Gallery, open the image, menu, Set as wallpaper, Lock screen.</li>
+      </ul>
+      <button type="button" class="btn btn-primary" id="close-modal">Done</button>
+    </div>
+  </div>
+
+  <!-- QR code library (qrcode-generator by Kazuhiko Arase, MIT licence) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <!-- ai.js talks to Claude; app.js is the rest of the app -->
+  <script src="ai.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
